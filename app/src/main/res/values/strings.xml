@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">deblock-demo</string>
+    <string name="label_send_etherium">Send Etherium</string>
 </resources>
