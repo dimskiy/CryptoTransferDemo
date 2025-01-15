@@ -1,0 +1,43 @@
+[versions]
+agp = "8.7.3"
+kotlin = "2.0.21"
+coreKtx = "1.15.0"
+junit = "4.13.2"
+junitVersion = "1.2.1"
+appcompat = "1.7.0"
+material = "1.12.0"
+timber = "5.0.1"
+androidxNav = "2.8.5"
+composeBom = "2024.12.01"
+
+[libraries]
+material = { group = "com.google.android.material", name = "material", version.ref = "material" }
+androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
+androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
+#androidx-lifecycle-viewmodel = { module = "androidx.lifecycle:lifecycle-viewmodel-ktx", version.ref = "lifecycle" }
+#androidx-lifecycle-extensions = { module = "androidx.lifecycle:lifecycle-extensions", version.ref = "lifecycleExt" }
+
+
+androidx-nav-ui = { module = "androidx.navigation:navigation-ui-ktx", version.ref = "androidxNav" }
+timber = { module = "com.jakewharton.timber:timber", version.ref = "timber" }
+
+#Compose
+androidx-compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }
+androidx-compose-ui = { module = "androidx.compose.ui:ui" }
+androidx-compose-tool-preview = { module = "androidx.compose.ui:ui-tooling-preview" }
+androidx-compose-activity = { module = "androidx.activity:activity-compose" }
+androidx-compose-lifecycle-viewmodel = { module = "androidx.lifecycle:lifecycle-viewmodel-compose" }
+androidx-compose-lifecycle = { module = "androidx.lifecycle:lifecycle-runtime-ktx" }
+androidx-compose-tool = { module = "androidx.compose.ui:ui-tooling" }
+androidx-compose-material3 = { module = "androidx.compose.material3:material3" }
+androidx-ui-graphics = { group = "androidx.compose.ui", name = "ui-graphics" }
+
+junit = { group = "junit", name = "junit", version.ref = "junit" }
+
+[plugins]
+android-application = { id = "com.android.application", version.ref = "agp" }
+jetbrains-kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+jetbrains-kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+androidx-nav-safeargs-plugin = { id = "androidx.navigation:navigation-safe-args-gradle-plugin", version.ref = "androidxNav" }
+
