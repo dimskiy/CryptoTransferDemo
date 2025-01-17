@@ -10,7 +10,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import `in`.windrunner.deblockdemo.ui.theme.DeblockDemoTheme
-import `in`.windrunner.deblockdemo.ui.transfer_screen.TransferScreenContent
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -24,9 +23,9 @@ class MainActivity : ComponentActivity() {
                         .padding(horizontal = 29.dp, vertical = 10.dp)
                         .fillMaxSize()
                 ) { innerPadding ->
-                    TransferScreenContent(
-                        modifier = Modifier.padding(innerPadding)
-                    )
+//                    TransferScreenContent(
+//                        modifier = Modifier.padding(innerPadding)
+//                    )
                 }
             }
         }
