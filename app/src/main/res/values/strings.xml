@@ -2,6 +2,7 @@
     <string name="app_name">deblock-demo</string>
     <string name="label_send_etherium">Send Etherium</string>
     <string name="label_est_network_fees">Est. Network fees: %s</string>
-    <string name="label_send_amount">Send %s of ETH</string>
+    <string name="label_send_amount_of_eth">Send %s of ETH</string>
+    <string name="label_send_amount">Send %s</string>
     <string name="label_max_amount">Max %s</string>
 </resources>

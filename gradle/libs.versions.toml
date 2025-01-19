@@ -1,6 +1,7 @@
 [versions]
 agp = "8.7.3"
 kotlin = "2.0.21"
+ksp = "2.0.21-1.0.28"
 coreKtx = "1.15.0"
 junit = "4.13.2"
 junitVersion = "1.2.1"
@@ -9,6 +10,8 @@ material = "1.12.0"
 timber = "5.0.1"
 androidxNav = "2.8.5"
 composeBom = "2024.12.01"
+hilt = "2.52"
+hiltNavigation = "1.2.0"
 
 [libraries]
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
@@ -34,10 +37,15 @@ androidx-compose-material3 = { module = "androidx.compose.material3:material3" }
 androidx-ui-graphics = { group = "androidx.compose.ui", name = "ui-graphics" }
 
 junit = { group = "junit", name = "junit", version.ref = "junit" }
+hilt = { group = "com.google.dagger", name = "hilt-android", version.ref = "hilt" }
+hilt-compiler = { group = "com.google.dagger", name = "hilt-compiler", version.ref = "hilt" }
+hilt-navigation = { group = "androidx.hilt", name = "hilt-navigation-compose", version.ref = "hiltNavigation" }
 
 [plugins]
+kotlin-ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 android-application = { id = "com.android.application", version.ref = "agp" }
 jetbrains-kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 jetbrains-kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
-androidx-nav-safeargs-plugin = { id = "androidx.navigation:navigation-safe-args-gradle-plugin", version.ref = "androidxNav" }
+androidx-nav-safeargs = { id = "androidx.navigation:navigation-safe-args-gradle-plugin", version.ref = "androidxNav" }
+androidx-hilt = { id = "com.google.dagger.hilt.android", version.ref = "hilt"}
 

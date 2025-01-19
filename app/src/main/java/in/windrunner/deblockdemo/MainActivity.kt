@@ -9,8 +9,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import dagger.hilt.android.AndroidEntryPoint
 import `in`.windrunner.deblockdemo.ui.theme.DeblockDemoTheme
+import `in`.windrunner.deblockdemo.ui.transfer_screen.TransferScreen
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -20,12 +23,10 @@ class MainActivity : ComponentActivity() {
             DeblockDemoTheme {
                 Scaffold(
                     modifier = Modifier
-                        .padding(horizontal = 29.dp, vertical = 10.dp)
+                        .padding(horizontal = 10.dp, vertical = 10.dp)
                         .fillMaxSize()
                 ) { innerPadding ->
-//                    TransferScreenContent(
-//                        modifier = Modifier.padding(innerPadding)
-//                    )
+                    TransferScreen(modifier = Modifier.padding(innerPadding))
                 }
             }
         }

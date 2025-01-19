@@ -1,6 +1,5 @@
 package `in`.windrunner.deblockdemo.ui.transfer_screen
 
-import androidx.annotation.DrawableRes
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
@@ -24,6 +23,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -32,19 +32,25 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import `in`.windrunner.deblockdemo.R
+import `in`.windrunner.deblockdemo.ui.CURRENCY_ETH_CODE
+import `in`.windrunner.deblockdemo.ui.CustomCurrencyAmount
 import `in`.windrunner.deblockdemo.ui.theme.DeblockDemoTheme
+import java.util.Currency
 
 @Preview
 @Composable
 fun TransferScreenDefault() {
     DeblockDemoTheme {
         TransferScreenContent(
-            topAmount = "$ 1 998",
-            bottomAmount = "1.2 ETH",
-            maxAmount = "3 450 ETH",
-            currencyLabel = "USD",
-            currencyIcon = R.drawable.ic_us,
+            transferModel = TransferModel(
+                selectedAmount = CustomCurrencyAmount(1998.0, Currency.getInstance("USD")),
+                selectedAmountIconRes = R.drawable.ic_us,
+                equivalentAmount = CustomCurrencyAmount(1.2, CURRENCY_ETH_CODE),
+                maxAvailableAmount = CustomCurrencyAmount(3450.0, CURRENCY_ETH_CODE),
+                transferFeeAmount = CustomCurrencyAmount(0.0013, CURRENCY_ETH_CODE),
+            ),
             onSwapCurrencyClick = {},
             onTransferClick = {},
             modifier = Modifier
@@ -54,52 +60,72 @@ fun TransferScreenDefault() {
 }
 
 @Composable
-fun TransferScreenContent(
-    topAmount: String,
-    bottomAmount: String,
-    maxAmount: String,
-    currencyLabel: String,
-    currencyIcon: Int,
+fun TransferScreen(modifier: Modifier, viewModel: TransferScreenViewModel = hiltViewModel()) {
+    val transferModel = viewModel.transferModel.collectAsState()
+
+    TransferScreenContent(
+        transferModel = transferModel.value,
+        onSwapCurrencyClick = viewModel::onSwapCurrencyClick,
+        onTransferClick = viewModel::onTransferClick,
+        modifier = modifier
+    )
+}
+
+@Composable
+private fun TransferScreenContent(
+    transferModel: TransferModel?,
     onSwapCurrencyClick: () -> Unit,
     onTransferClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Box(
-        modifier = modifier.fillMaxSize()
+    Surface(
+        modifier = modifier
     ) {
-        TransferWidget(
-            topAmount = topAmount,
-            bottomAmount = bottomAmount,
-            maxAmount = maxAmount,
-            currencyLabel = currencyLabel,
-            currencyIcon = currencyIcon,
-            onSwapCurrencyClick = onSwapCurrencyClick,
-            modifier = Modifier
-                .padding(top = 20.dp)
-                .align(Alignment.TopCenter)
-        )
-
-        Button(
-            onClick = onTransferClick,
-            shape = RectangleShape,
-            modifier = Modifier
-                .padding(horizontal = 22.dp, vertical = 10.dp)
-                .height(56.dp)
-                .fillMaxWidth()
-                .align(Alignment.BottomCenter)
+        Box(
+            modifier = Modifier.fillMaxSize()
         ) {
-            Text(text = stringResource(R.string.label_send_amount, topAmount))
+            // TODO: should add loading state for the TransferWidget?
+            if (transferModel != null) {
+                TransferWidget(
+                    transferModel = transferModel,
+                    onSwapCurrencyClick = onSwapCurrencyClick,
+                    modifier = Modifier
+                        .padding(top = 20.dp)
+                        .align(Alignment.TopCenter)
+                )
+            }
+
+            Button(
+                enabled = transferModel != null,
+                onClick = onTransferClick,
+                shape = RectangleShape,
+                modifier = Modifier
+                    .padding(horizontal = 22.dp, vertical = 10.dp)
+                    .height(56.dp)
+                    .fillMaxWidth()
+                    .align(Alignment.BottomCenter)
+            ) {
+                val label = if (transferModel?.selectedAmount?.isCurrencyEth() == true) {
+                    stringResource(
+                        R.string.label_send_amount,
+                        transferModel.selectedAmount.getFormatted()
+                    )
+                } else {
+                    stringResource(
+                        R.string.label_send_amount_of_eth,
+                        transferModel?.selectedAmount?.getFormatted().orEmpty()
+                    )
+                }
+
+                Text(text = label)
+            }
         }
     }
 }
 
 @Composable
 private fun TransferWidget(
-    topAmount: String,
-    bottomAmount: String,
-    maxAmount: String,
-    currencyLabel: String,
-    currencyIcon: Int,
+    transferModel: TransferModel,
     onSwapCurrencyClick: () -> Unit,
     modifier: Modifier
 ) {
@@ -116,11 +142,7 @@ private fun TransferWidget(
                 .fillMaxWidth()
         ) {
             Calculator(
-                topAmount = topAmount,
-                bottomAmount = bottomAmount,
-                maxAmount = maxAmount,
-                currencyLabel = currencyLabel,
-                currencyIcon = currencyIcon,
+                transferModel = transferModel,
                 onSwapCurrencyClick = onSwapCurrencyClick,
                 modifier = Modifier.padding(horizontal = 22.dp)
             )
@@ -132,7 +154,7 @@ private fun TransferWidget(
         }
 
         TransferFeeLabel(
-            "0.0012 ETH",
+            transferModel.transferFeeAmount.getFormatted(),
             modifier = Modifier.padding(start = 22.dp, top = 15.dp, end = 22.dp)
         )
     }
@@ -140,11 +162,7 @@ private fun TransferWidget(
 
 @Composable
 private fun Calculator(
-    topAmount: String,
-    bottomAmount: String,
-    maxAmount: String,
-    currencyLabel: String,
-    currencyIcon: Int,
+    transferModel: TransferModel,
     onSwapCurrencyClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -163,21 +181,19 @@ private fun Calculator(
                     .weight(0.6f)
             ) {
                 Text(
-                    text = topAmount,
+                    text = transferModel.selectedAmount.getFormatted(),
                     style = MaterialTheme.typography.titleLarge,
                 )
                 Text(
-                    text = bottomAmount,
+                    text = transferModel.equivalentAmount.getFormatted(),
                     style = MaterialTheme.typography.labelMedium,
                     color = Color.Gray,
                 )
             }
 
             CurrencyPanel(
-                maxAmount,
-                currencyLabel,
-                currencyIcon,
-                onSwapCurrencyClick,
+                transferModel = transferModel,
+                onSwapCurrencyClick = onSwapCurrencyClick,
                 modifier = Modifier
                     .padding(top = 10.dp)
                     .weight(0.4f)
@@ -188,9 +204,7 @@ private fun Calculator(
 
 @Composable
 private fun CurrencyPanel(
-    maxAmount: String,
-    currencyLabel: String,
-    @DrawableRes currencyIcon: Int,
+    transferModel: TransferModel,
     onSwapCurrencyClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -200,7 +214,10 @@ private fun CurrencyPanel(
             .wrapContentWidth(),
     ) {
         Text(
-            text = stringResource(R.string.label_max_amount, maxAmount),
+            text = stringResource(
+                R.string.label_max_amount,
+                transferModel.maxAvailableAmount.getFormatted()
+            ),
             style = MaterialTheme.typography.labelMedium,
             color = Color.Blue,
             modifier = Modifier
@@ -212,13 +229,13 @@ private fun CurrencyPanel(
                 .weight(0.7f)
         ) {
             Image(
-                painter = painterResource(currencyIcon),
+                painter = painterResource(transferModel.selectedAmountIconRes),
                 contentDescription = "Currency Flag",
                 modifier = Modifier.size(24.dp)
             )
 
             Text(
-                text = currencyLabel,
+                text = transferModel.selectedAmount.currencyCode,
                 style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier.padding(start = 10.dp)
             )
