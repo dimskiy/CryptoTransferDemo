@@ -1,6 +1,7 @@
 package `in`.windrunner.deblockdemo.domain.repository
 
 import `in`.windrunner.deblockdemo.CustomCurrencyAmount
+import java.math.BigDecimal
 import java.util.Currency
 import javax.inject.Inject
 
@@ -14,7 +15,7 @@ class CalculatorRepositoryImpl @Inject constructor() : CalculatorRepository {
         )
     }
 
-    override suspend fun getEthConversionRate(fiatCurrency: String): Result<CustomCurrencyAmount> {
+    override suspend fun getEthConversionRate(fiatCurrency: String): Result<BigDecimal> {
         TODO("Not yet implemented")
     }
 

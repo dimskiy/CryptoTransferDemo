@@ -96,7 +96,7 @@ private fun TransferScreenContent(
             }
 
             Button(
-                enabled = transferCalcModel != null,
+                enabled = transferCalcModel?.transferFeeAmount != null,
                 onClick = onTransferClick,
                 shape = RectangleShape,
                 modifier = Modifier
@@ -154,7 +154,7 @@ private fun TransferWidget(
         }
 
         TransferFeeLabel(
-            transferCalcModel.transferFeeAmount.getFormatted(),
+            transferCalcModel.transferFeeAmount?.getFormatted().orEmpty(),
             modifier = Modifier.padding(start = 22.dp, top = 15.dp, end = 22.dp)
         )
     }

@@ -8,5 +8,5 @@ data class TransferCalcModel(
     @DrawableRes val selectedAmountIconRes: Int,
     val equivalentAmount: CustomCurrencyAmount,
     val maxAvailableAmount: CustomCurrencyAmount,
-    val transferFeeAmount: CustomCurrencyAmount,
+    val transferFeeAmount: CustomCurrencyAmount?,
 )
