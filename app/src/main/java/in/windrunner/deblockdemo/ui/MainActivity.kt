@@ -1,4 +1,4 @@
-package `in`.windrunner.deblockdemo
+package `in`.windrunner.deblockdemo.ui
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity

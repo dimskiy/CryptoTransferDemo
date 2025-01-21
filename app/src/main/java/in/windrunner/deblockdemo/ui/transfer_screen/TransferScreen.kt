@@ -33,9 +33,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import `in`.windrunner.deblockdemo.CURRENCY_ETH_CODE
+import `in`.windrunner.deblockdemo.CustomCurrencyAmount
 import `in`.windrunner.deblockdemo.R
-import `in`.windrunner.deblockdemo.ui.CURRENCY_ETH_CODE
-import `in`.windrunner.deblockdemo.ui.CustomCurrencyAmount
 import `in`.windrunner.deblockdemo.ui.theme.DeblockDemoTheme
 import java.util.Currency
 
@@ -44,12 +44,12 @@ import java.util.Currency
 fun TransferScreenDefault() {
     DeblockDemoTheme {
         TransferScreenContent(
-            transferModel = TransferModel(
-                selectedAmount = CustomCurrencyAmount(1998.0, Currency.getInstance("USD")),
+            transferCalcModel = TransferCalcModel(
+                selectedAmount = CustomCurrencyAmount(1998.toBigDecimal(), Currency.getInstance("USD")),
                 selectedAmountIconRes = R.drawable.ic_us,
-                equivalentAmount = CustomCurrencyAmount(1.2, CURRENCY_ETH_CODE),
-                maxAvailableAmount = CustomCurrencyAmount(3450.0, CURRENCY_ETH_CODE),
-                transferFeeAmount = CustomCurrencyAmount(0.0013, CURRENCY_ETH_CODE),
+                equivalentAmount = CustomCurrencyAmount(1.2.toBigDecimal(), CURRENCY_ETH_CODE),
+                maxAvailableAmount = CustomCurrencyAmount(3450.toBigDecimal(), CURRENCY_ETH_CODE),
+                transferFeeAmount = CustomCurrencyAmount(0.0013.toBigDecimal(), CURRENCY_ETH_CODE),
             ),
             onSwapCurrencyClick = {},
             onTransferClick = {},
@@ -61,10 +61,10 @@ fun TransferScreenDefault() {
 
 @Composable
 fun TransferScreen(modifier: Modifier, viewModel: TransferScreenViewModel = hiltViewModel()) {
-    val transferModel = viewModel.transferModel.collectAsState()
+    val transferModel = viewModel.transferCalcModel.collectAsState()
 
     TransferScreenContent(
-        transferModel = transferModel.value,
+        transferCalcModel = transferModel.value,
         onSwapCurrencyClick = viewModel::onSwapCurrencyClick,
         onTransferClick = viewModel::onTransferClick,
         modifier = modifier
@@ -73,7 +73,7 @@ fun TransferScreen(modifier: Modifier, viewModel: TransferScreenViewModel = hilt
 
 @Composable
 private fun TransferScreenContent(
-    transferModel: TransferModel?,
+    transferCalcModel: TransferCalcModel?,
     onSwapCurrencyClick: () -> Unit,
     onTransferClick: () -> Unit,
     modifier: Modifier = Modifier
@@ -85,9 +85,9 @@ private fun TransferScreenContent(
             modifier = Modifier.fillMaxSize()
         ) {
             // TODO: should add loading state for the TransferWidget?
-            if (transferModel != null) {
+            if (transferCalcModel != null) {
                 TransferWidget(
-                    transferModel = transferModel,
+                    transferCalcModel = transferCalcModel,
                     onSwapCurrencyClick = onSwapCurrencyClick,
                     modifier = Modifier
                         .padding(top = 20.dp)
@@ -96,7 +96,7 @@ private fun TransferScreenContent(
             }
 
             Button(
-                enabled = transferModel != null,
+                enabled = transferCalcModel != null,
                 onClick = onTransferClick,
                 shape = RectangleShape,
                 modifier = Modifier
@@ -105,15 +105,15 @@ private fun TransferScreenContent(
                     .fillMaxWidth()
                     .align(Alignment.BottomCenter)
             ) {
-                val label = if (transferModel?.selectedAmount?.isCurrencyEth() == true) {
+                val label = if (transferCalcModel?.selectedAmount?.isCurrencyEth() == true) {
                     stringResource(
                         R.string.label_send_amount,
-                        transferModel.selectedAmount.getFormatted()
+                        transferCalcModel.selectedAmount.getFormatted()
                     )
                 } else {
                     stringResource(
                         R.string.label_send_amount_of_eth,
-                        transferModel?.selectedAmount?.getFormatted().orEmpty()
+                        transferCalcModel?.selectedAmount?.getFormatted().orEmpty()
                     )
                 }
 
@@ -125,7 +125,7 @@ private fun TransferScreenContent(
 
 @Composable
 private fun TransferWidget(
-    transferModel: TransferModel,
+    transferCalcModel: TransferCalcModel,
     onSwapCurrencyClick: () -> Unit,
     modifier: Modifier
 ) {
@@ -142,7 +142,7 @@ private fun TransferWidget(
                 .fillMaxWidth()
         ) {
             Calculator(
-                transferModel = transferModel,
+                transferCalcModel = transferCalcModel,
                 onSwapCurrencyClick = onSwapCurrencyClick,
                 modifier = Modifier.padding(horizontal = 22.dp)
             )
@@ -154,7 +154,7 @@ private fun TransferWidget(
         }
 
         TransferFeeLabel(
-            transferModel.transferFeeAmount.getFormatted(),
+            transferCalcModel.transferFeeAmount.getFormatted(),
             modifier = Modifier.padding(start = 22.dp, top = 15.dp, end = 22.dp)
         )
     }
@@ -162,7 +162,7 @@ private fun TransferWidget(
 
 @Composable
 private fun Calculator(
-    transferModel: TransferModel,
+    transferCalcModel: TransferCalcModel,
     onSwapCurrencyClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -181,18 +181,18 @@ private fun Calculator(
                     .weight(0.6f)
             ) {
                 Text(
-                    text = transferModel.selectedAmount.getFormatted(),
+                    text = transferCalcModel.selectedAmount.getFormatted(),
                     style = MaterialTheme.typography.titleLarge,
                 )
                 Text(
-                    text = transferModel.equivalentAmount.getFormatted(),
+                    text = transferCalcModel.equivalentAmount.getFormatted(),
                     style = MaterialTheme.typography.labelMedium,
                     color = Color.Gray,
                 )
             }
 
             CurrencyPanel(
-                transferModel = transferModel,
+                transferCalcModel = transferCalcModel,
                 onSwapCurrencyClick = onSwapCurrencyClick,
                 modifier = Modifier
                     .padding(top = 10.dp)
@@ -204,7 +204,7 @@ private fun Calculator(
 
 @Composable
 private fun CurrencyPanel(
-    transferModel: TransferModel,
+    transferCalcModel: TransferCalcModel,
     onSwapCurrencyClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -216,7 +216,7 @@ private fun CurrencyPanel(
         Text(
             text = stringResource(
                 R.string.label_max_amount,
-                transferModel.maxAvailableAmount.getFormatted()
+                transferCalcModel.maxAvailableAmount.getFormatted()
             ),
             style = MaterialTheme.typography.labelMedium,
             color = Color.Blue,
@@ -229,13 +229,13 @@ private fun CurrencyPanel(
                 .weight(0.7f)
         ) {
             Image(
-                painter = painterResource(transferModel.selectedAmountIconRes),
+                painter = painterResource(transferCalcModel.selectedAmountIconRes),
                 contentDescription = "Currency Flag",
                 modifier = Modifier.size(24.dp)
             )
 
             Text(
-                text = transferModel.selectedAmount.currencyCode,
+                text = transferCalcModel.selectedAmount.currencyCode,
                 style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier.padding(start = 10.dp)
             )

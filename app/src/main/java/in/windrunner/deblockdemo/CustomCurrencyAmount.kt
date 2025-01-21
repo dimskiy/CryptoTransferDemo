@@ -1,5 +1,6 @@
-package `in`.windrunner.deblockdemo.ui
+package `in`.windrunner.deblockdemo
 
+import java.math.BigDecimal
 import java.text.DecimalFormat
 import java.text.DecimalFormatSymbols
 import java.util.Currency
@@ -8,18 +9,18 @@ private const val AMOUNT_FORMAT = "#,##0.######"
 const val CURRENCY_ETH_CODE = "ETH"
 
 data class CustomCurrencyAmount(
-    val number: Double,
+    val number: BigDecimal,
     val currencyCode: String,
     val currencySymbol: String
 ) {
 
-    constructor(number: Double, fiatCurrency: Currency) : this(
+    constructor(number: BigDecimal, fiatCurrency: Currency) : this(
         number,
         fiatCurrency.currencyCode,
         fiatCurrency.symbol
     )
 
-    constructor(number: Double, currencyCode: String) : this(
+    constructor(number: BigDecimal, currencyCode: String) : this(
         number,
         currencyCode,
         currencyCode
@@ -33,7 +34,7 @@ data class CustomCurrencyAmount(
 
     fun isCurrencyEth(): Boolean = currencyCode == CURRENCY_ETH_CODE
 
-    private fun getDecimalFormatted(number: Double): String {
+    private fun getDecimalFormatted(number: BigDecimal): String {
         val symbols = DecimalFormatSymbols().apply {
             setGroupingSeparator(' ')
             setDecimalSeparator('.')
