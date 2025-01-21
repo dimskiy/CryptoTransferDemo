@@ -3,18 +3,23 @@ package `in`.windrunner.deblockdemo.ui.transfer_screen
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.Icon
@@ -24,19 +29,35 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onKeyEvent
+import androidx.compose.ui.input.key.type
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import `in`.windrunner.deblockdemo.CustomCurrencyAmount
 import `in`.windrunner.deblockdemo.CustomCurrencyAmount.Companion.CURRENCY_ETH_CODE
 import `in`.windrunner.deblockdemo.R
+import `in`.windrunner.deblockdemo.forceKeyboardShow
+import `in`.windrunner.deblockdemo.isDecimalCompatible
+import `in`.windrunner.deblockdemo.swapCommaWithDot
 import `in`.windrunner.deblockdemo.ui.theme.DeblockDemoTheme
+import java.math.BigDecimal
 import java.util.Currency
 
 @Preview
@@ -45,14 +66,20 @@ fun TransferScreenDefault() {
     DeblockDemoTheme {
         TransferScreenContent(
             transferCalcModel = TransferCalcModel(
-                selectedAmount = CustomCurrencyAmount(1998.toBigDecimal(), Currency.getInstance("USD")),
-                selectedAmountIconRes = R.drawable.ic_us,
+                selectedAmount = CustomCurrencyAmount(
+                    1998.toBigDecimal(),
+                    Currency.getInstance("USD")
+                ),
+                selectedCurrency = Currency.getInstance("USD"),
+                selectedCurrencyIconRes = R.drawable.ic_us,
                 equivalentAmount = CustomCurrencyAmount(1.2.toBigDecimal(), CURRENCY_ETH_CODE),
                 maxAvailableAmount = CustomCurrencyAmount(3450.toBigDecimal(), CURRENCY_ETH_CODE),
                 transferFeeAmount = CustomCurrencyAmount(0.0013.toBigDecimal(), CURRENCY_ETH_CODE),
             ),
+            onSelectedAmountChange = {},
             onSwapCurrencyClick = {},
             onTransferClick = {},
+            onAmountEnterConfirmClick = {},
             modifier = Modifier
                 .padding(horizontal = 10.dp, vertical = 10.dp)
         )
@@ -65,8 +92,10 @@ fun TransferScreen(modifier: Modifier, viewModel: TransferScreenViewModel = hilt
 
     TransferScreenContent(
         transferCalcModel = transferModel.value,
+        onSelectedAmountChange = viewModel::onAmountChange,
         onSwapCurrencyClick = viewModel::onSwapCurrencyClick,
         onTransferClick = viewModel::onTransferClick,
+        onAmountEnterConfirmClick = viewModel::onTransferClick,
         modifier = modifier
     )
 }
@@ -74,8 +103,10 @@ fun TransferScreen(modifier: Modifier, viewModel: TransferScreenViewModel = hilt
 @Composable
 private fun TransferScreenContent(
     transferCalcModel: TransferCalcModel?,
+    onSelectedAmountChange: (BigDecimal?) -> Unit,
     onSwapCurrencyClick: () -> Unit,
     onTransferClick: () -> Unit,
+    onAmountEnterConfirmClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Surface(
@@ -88,7 +119,9 @@ private fun TransferScreenContent(
             if (transferCalcModel != null) {
                 TransferWidget(
                     transferCalcModel = transferCalcModel,
+                    onSelectedAmountChange = onSelectedAmountChange,
                     onSwapCurrencyClick = onSwapCurrencyClick,
+                    onAmountEnterConfirmClick = onAmountEnterConfirmClick,
                     modifier = Modifier
                         .padding(top = 20.dp)
                         .align(Alignment.TopCenter)
@@ -100,6 +133,7 @@ private fun TransferScreenContent(
                 onClick = onTransferClick,
                 shape = RectangleShape,
                 modifier = Modifier
+                    .imePadding()
                     .padding(horizontal = 22.dp, vertical = 10.dp)
                     .height(56.dp)
                     .fillMaxWidth()
@@ -126,7 +160,9 @@ private fun TransferScreenContent(
 @Composable
 private fun TransferWidget(
     transferCalcModel: TransferCalcModel,
+    onSelectedAmountChange: (BigDecimal?) -> Unit,
     onSwapCurrencyClick: () -> Unit,
+    onAmountEnterConfirmClick: () -> Unit,
     modifier: Modifier
 ) {
     Column(modifier = modifier) {
@@ -143,7 +179,9 @@ private fun TransferWidget(
         ) {
             Calculator(
                 transferCalcModel = transferCalcModel,
+                onSelectedAmountChange = onSelectedAmountChange,
                 onSwapCurrencyClick = onSwapCurrencyClick,
+                onAmountEnterConfirmClick = onAmountEnterConfirmClick,
                 modifier = Modifier.padding(horizontal = 22.dp)
             )
 
@@ -163,7 +201,9 @@ private fun TransferWidget(
 @Composable
 private fun Calculator(
     transferCalcModel: TransferCalcModel,
+    onSelectedAmountChange: (BigDecimal?) -> Unit,
     onSwapCurrencyClick: () -> Unit,
+    onAmountEnterConfirmClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Surface(
@@ -180,10 +220,12 @@ private fun Calculator(
                     .padding(start = 35.dp, top = 25.dp, bottom = 25.dp)
                     .weight(0.6f)
             ) {
-                Text(
-                    text = transferCalcModel.selectedAmount.getFormatted(),
-                    style = MaterialTheme.typography.titleLarge,
+                AmountEnterWidget(
+                    transferCalcModel = transferCalcModel,
+                    onSelectedAmountChange = onSelectedAmountChange,
+                    onAmountEnterConfirmClick = onAmountEnterConfirmClick
                 )
+
                 Text(
                     text = transferCalcModel.equivalentAmount.getFormatted(),
                     style = MaterialTheme.typography.labelMedium,
@@ -200,6 +242,71 @@ private fun Calculator(
             )
         }
     }
+}
+
+@Composable
+private fun AmountEnterWidget(
+    transferCalcModel: TransferCalcModel,
+    onSelectedAmountChange: (BigDecimal?) -> Unit,
+    onAmountEnterConfirmClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    var amountEntered by remember { mutableStateOf("") }
+    amountEntered = transferCalcModel.selectedAmount.number
+        .takeIf { it > 0.toBigDecimal() }
+        ?.toString()
+        .orEmpty()
+
+    BasicTextField(
+        value = amountEntered,
+        onValueChange = { newValue ->
+            val noCommaValue = newValue.swapCommaWithDot()
+            if (noCommaValue.isDecimalCompatible()) {
+                amountEntered = noCommaValue
+                onSelectedAmountChange(noCommaValue.toBigDecimalOrNull())
+            }
+        },
+        cursorBrush = SolidColor(Color.Transparent),
+        keyboardOptions = KeyboardOptions.Default.copy(
+            keyboardType = KeyboardType.Decimal,
+            imeAction = ImeAction.Send,
+        ),
+        keyboardActions = KeyboardActions(
+            onSend = { onAmountEnterConfirmClick() }
+        ),
+        decorationBox = { innerTextField ->
+            Row(
+                horizontalArrangement = Arrangement.Start
+            ) {
+                Text(
+                    text = transferCalcModel.selectedAmount.currencySymbol,
+                    style = MaterialTheme.typography.titleLarge,
+                    modifier = Modifier.padding(end = 5.dp)
+                )
+                if (amountEntered.isEmpty()) {
+                    Text(
+                        text = "0",
+                        style = MaterialTheme.typography.titleLarge,
+                    )
+                } else {
+                    innerTextField()
+                }
+            }
+        },
+        readOnly = false,
+        textStyle = MaterialTheme.typography.titleLarge,
+        modifier = modifier
+            .forceKeyboardShow()
+            .onKeyEvent { keyEvent ->
+                if (keyEvent.type == KeyEventType.KeyUp && keyEvent.key == Key.Backspace) {
+                    amountEntered = ""
+                    onSelectedAmountChange(0.toBigDecimal())
+                    true
+                } else {
+                    false
+                }
+            },
+    )
 }
 
 @Composable
@@ -224,18 +331,18 @@ private fun CurrencyPanel(
                 .weight(0.3f)
                 .padding(bottom = 4.dp)
         )
-        Row(
-            modifier = Modifier
-                .weight(0.7f)
-        ) {
-            Image(
-                painter = painterResource(transferCalcModel.selectedAmountIconRes),
-                contentDescription = "Currency Flag",
-                modifier = Modifier.size(24.dp)
-            )
+        Row(modifier = Modifier.weight(0.7f)) {
+            Box(modifier = Modifier.size(24.dp)) {
+                transferCalcModel.selectedCurrencyIconRes?.let {
+                    Image(
+                        painter = painterResource(it),
+                        contentDescription = "Currency Flag"
+                    )
+                }
+            }
 
             Text(
-                text = transferCalcModel.selectedAmount.currencyCode,
+                text = transferCalcModel.selectedCurrency.currencyCode,
                 style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier.padding(start = 10.dp)
             )
