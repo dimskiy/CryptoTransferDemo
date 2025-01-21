@@ -33,8 +33,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import `in`.windrunner.deblockdemo.CURRENCY_ETH_CODE
 import `in`.windrunner.deblockdemo.CustomCurrencyAmount
+import `in`.windrunner.deblockdemo.CustomCurrencyAmount.Companion.CURRENCY_ETH_CODE
 import `in`.windrunner.deblockdemo.R
 import `in`.windrunner.deblockdemo.ui.theme.DeblockDemoTheme
 import java.util.Currency

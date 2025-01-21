@@ -6,7 +6,6 @@ import java.text.DecimalFormatSymbols
 import java.util.Currency
 
 private const val AMOUNT_FORMAT = "#,##0.######"
-const val CURRENCY_ETH_CODE = "ETH"
 
 data class CustomCurrencyAmount(
     val number: BigDecimal,
@@ -41,5 +40,9 @@ data class CustomCurrencyAmount(
         }
 
         return DecimalFormat(AMOUNT_FORMAT, symbols).format(number)
+    }
+
+    companion object {
+        const val CURRENCY_ETH_CODE = "ETH"
     }
 }
