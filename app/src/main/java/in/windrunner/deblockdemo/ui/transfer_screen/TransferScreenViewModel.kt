@@ -3,12 +3,11 @@ package `in`.windrunner.deblockdemo.ui.transfer_screen
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import `in`.windrunner.deblockdemo.CustomCurrencyAmount.Companion.CURRENCY_ETH_CODE
 import `in`.windrunner.deblockdemo.domain.CurrencySelectionState
 import `in`.windrunner.deblockdemo.domain.usecase.GetConversionRateCase
 import `in`.windrunner.deblockdemo.domain.usecase.ObserveEthWalletBalance
 import `in`.windrunner.deblockdemo.domain.usecase.ObserveTransferFeeCase
-import `in`.windrunner.deblockdemo.ofCryptoCurrency
+import `in`.windrunner.deblockdemo.ofEtherium
 import `in`.windrunner.deblockdemo.ofFiatCurrency
 import `in`.windrunner.deblockdemo.ui.MediaProvider
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -61,17 +60,17 @@ class TransferScreenViewModel @Inject constructor(
     ) { amount, fiatToEthDirection, transferFee, walletBalance ->
         val enteredAmount = if (fiatToEthDirection) {
             amount.ofFiatCurrency(currency)
-        } else amount.ofCryptoCurrency(CURRENCY_ETH_CODE)
+        } else amount.ofEtherium()
 
         val equivalentAmount = if (fiatToEthDirection) {
-            (amount * convertRate).ofCryptoCurrency(CURRENCY_ETH_CODE)
+            (amount * convertRate).ofEtherium()
         } else (amount / convertRate).ofFiatCurrency(currency)
 
         TransferCalcModel(
             enteredAmount = enteredAmount,
             equivalentAmount = equivalentAmount,
-            maxAvailableAmount = walletBalance.ofCryptoCurrency(CURRENCY_ETH_CODE),
-            transferFeeAmount = transferFee?.ofCryptoCurrency(CURRENCY_ETH_CODE),
+            maxAvailableAmount = walletBalance.ofEtherium(),
+            transferFeeAmount = transferFee?.ofEtherium(),
             selectedCurrency = currency,
             selectedCurrencyIconRes = mediaProvider.getFlagResource(currency.currencyCode),
             isTransferAllowed = isTransferAllowed(

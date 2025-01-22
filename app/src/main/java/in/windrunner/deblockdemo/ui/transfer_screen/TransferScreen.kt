@@ -45,10 +45,14 @@ import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import `in`.windrunner.deblockdemo.CustomCurrencyAmount
 import `in`.windrunner.deblockdemo.CustomCurrencyAmount.Companion.CURRENCY_ETH_CODE
@@ -170,6 +174,8 @@ private fun TransferWidget(
         Text(
             text = stringResource(R.string.label_send_etherium),
             style = MaterialTheme.typography.titleLarge,
+            fontSize = 32.sp,
+            fontWeight = FontWeight.W500,
             modifier = Modifier.padding(start = 25.dp)
         )
 
@@ -230,7 +236,7 @@ private fun Calculator(
                 Text(
                     text = transferCalcModel.equivalentAmount.getFormatted(),
                     style = MaterialTheme.typography.labelMedium,
-                    color = Color.Gray,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
 
@@ -253,15 +259,12 @@ private fun AmountEnterField(
     modifier: Modifier = Modifier
 ) {
     var amountEntered by remember { mutableStateOf("") }
-    amountEntered = transferCalcModel.enteredAmount.number
-        .takeIf { it > 0.toBigDecimal() }
-        ?.toString()
-        .orEmpty()
+    amountEntered = transferCalcModel.enteredAmount.number.toString()
 
     BasicTextField(
-        value = amountEntered,
+        value = TextFieldValue(amountEntered, TextRange(amountEntered.length)),
         onValueChange = { newValue ->
-            val noCommaValue = newValue.swapCommaWithDot()
+            val noCommaValue = newValue.text.swapCommaWithDot()
             if (noCommaValue.isDecimalCompatible()) {
                 amountEntered = noCommaValue
                 onSelectedAmountChange(noCommaValue.toBigDecimalOrNull())
@@ -286,6 +289,7 @@ private fun AmountEnterField(
                 Text(
                     text = transferCalcModel.enteredAmount.currencySymbol,
                     style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.W500,
                     modifier = Modifier.padding(end = 5.dp)
                 )
                 if (amountEntered.isEmpty()) {
@@ -376,8 +380,11 @@ private fun CurrencyPanel(
 private fun SwapCurrenciesPairButton(onClick: () -> Unit, modifier: Modifier = Modifier) {
     FilledIconButton(
         shape = CircleShape,
-        colors = IconButtonDefaults.filledIconButtonColors().copy(
-            containerColor = MaterialTheme.colorScheme.surface
+        colors = IconButtonDefaults.filledIconButtonColors(
+            containerColor = MaterialTheme.colorScheme.surface,
+            contentColor = MaterialTheme.colorScheme.onSurface,
+            disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+            disabledContentColor = MaterialTheme.colorScheme.onSurfaceVariant
         ),
         onClick = onClick,
         modifier = modifier
@@ -389,8 +396,7 @@ private fun SwapCurrenciesPairButton(onClick: () -> Unit, modifier: Modifier = M
     ) {
         Icon(
             painter = painterResource(R.drawable.ic_arrows),
-            contentDescription = "Transfer Arrows",
-            tint = Color.Black,
+            contentDescription = "",
             modifier = Modifier.size(18.dp)
         )
     }
@@ -411,6 +417,7 @@ private fun TransferFeeLabel(feeText: String, modifier: Modifier) {
         Text(
             text = stringResource(R.string.label_est_network_fees, feeText),
             style = MaterialTheme.typography.labelSmall,
+            fontSize = 12.sp,
             modifier = Modifier.padding(start = 5.dp)
         )
     }.takeIf { feeText.isNotEmpty() }

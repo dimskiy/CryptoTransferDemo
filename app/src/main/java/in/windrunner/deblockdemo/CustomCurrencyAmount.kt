@@ -10,9 +10,9 @@ fun BigDecimal.ofFiatCurrency(currency: Currency): CustomCurrencyAmount = Custom
     fiatCurrency = currency
 )
 
-fun BigDecimal.ofCryptoCurrency(currencyCode: String): CustomCurrencyAmount = CustomCurrencyAmount(
+fun BigDecimal.ofEtherium(): CustomCurrencyAmount = CustomCurrencyAmount(
     number = this,
-    currencyCode = currencyCode
+    currencyCode = CustomCurrencyAmount.CURRENCY_ETH_CODE
 )
 
 private const val AMOUNT_FORMAT = "#,##0.######"
