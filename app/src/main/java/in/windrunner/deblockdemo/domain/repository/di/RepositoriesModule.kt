@@ -1,4 +1,4 @@
-package `in`.windrunner.deblockdemo.domain.repository.ci
+package `in`.windrunner.deblockdemo.domain.repository.di
 
 import dagger.Binds
 import dagger.Module

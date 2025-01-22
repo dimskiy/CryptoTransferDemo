@@ -68,6 +68,10 @@ dependencies {
 
     implementation(libs.timber)
 
+    implementation(libs.retrofit)
+    implementation(libs.retrofit.jsonConverter)
+    implementation(libs.retrofit.logger)
+
     debugImplementation(libs.androidx.compose.tool.preview)
     debugImplementation(libs.androidx.compose.tool)
 
