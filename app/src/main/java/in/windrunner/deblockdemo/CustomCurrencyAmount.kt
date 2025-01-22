@@ -5,6 +5,16 @@ import java.text.DecimalFormat
 import java.text.DecimalFormatSymbols
 import java.util.Currency
 
+fun BigDecimal.ofFiatCurrency(currency: Currency): CustomCurrencyAmount = CustomCurrencyAmount(
+    number = this,
+    fiatCurrency = currency
+)
+
+fun BigDecimal.ofCryptoCurrency(currencyCode: String): CustomCurrencyAmount = CustomCurrencyAmount(
+    number = this,
+    currencyCode = currencyCode
+)
+
 private const val AMOUNT_FORMAT = "#,##0.######"
 
 data class CustomCurrencyAmount(
@@ -26,9 +36,9 @@ data class CustomCurrencyAmount(
     )
 
     fun getFormatted(): String = if (isCurrencyEth()) {
-        "${getDecimalFormatted(number)} ${currencySymbol}"
+        "${getDecimalFormatted(number)} $currencySymbol"
     } else {
-        "${currencySymbol} ${getDecimalFormatted(number)}"
+        "$currencySymbol ${getDecimalFormatted(number)}"
     }
 
     fun isCurrencyEth(): Boolean = currencyCode == CURRENCY_ETH_CODE

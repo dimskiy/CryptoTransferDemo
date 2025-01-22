@@ -3,12 +3,13 @@ package `in`.windrunner.deblockdemo.ui.transfer_screen
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import `in`.windrunner.deblockdemo.CustomCurrencyAmount
 import `in`.windrunner.deblockdemo.CustomCurrencyAmount.Companion.CURRENCY_ETH_CODE
 import `in`.windrunner.deblockdemo.domain.CurrencySelectionState
 import `in`.windrunner.deblockdemo.domain.usecase.GetConversionRateCase
 import `in`.windrunner.deblockdemo.domain.usecase.ObserveEthWalletBalance
 import `in`.windrunner.deblockdemo.domain.usecase.ObserveTransferFeeCase
+import `in`.windrunner.deblockdemo.ofCryptoCurrency
+import `in`.windrunner.deblockdemo.ofFiatCurrency
 import `in`.windrunner.deblockdemo.ui.MediaProvider
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -58,46 +59,36 @@ class TransferScreenViewModel @Inject constructor(
         observeTransferFeeCase(),
         observeEthWalletBalance()
     ) { amount, fiatToEthDirection, transferFee, walletBalance ->
-        val selectedCurrencyAmount = if (fiatToEthDirection) {
-            CustomCurrencyAmount(
-                number = amount,
-                fiatCurrency = currency
-            )
-        } else {
-            CustomCurrencyAmount(
-                number = amount,
-                currencyCode = CURRENCY_ETH_CODE
-            )
-        }
+        val enteredAmount = if (fiatToEthDirection) {
+            amount.ofFiatCurrency(currency)
+        } else amount.ofCryptoCurrency(CURRENCY_ETH_CODE)
 
-        val equivalentCurrencyAmount = if (fiatToEthDirection) {
-            CustomCurrencyAmount(
-                number = amount * convertRate,
-                currencyCode = CURRENCY_ETH_CODE
-            )
-        } else {
-            CustomCurrencyAmount(
-                number = amount / convertRate,
-                fiatCurrency = currency
-            )
-        }
+        val equivalentAmount = if (fiatToEthDirection) {
+            (amount * convertRate).ofCryptoCurrency(CURRENCY_ETH_CODE)
+        } else (amount / convertRate).ofFiatCurrency(currency)
 
         TransferCalcModel(
-            selectedAmount = selectedCurrencyAmount,
+            enteredAmount = enteredAmount,
+            equivalentAmount = equivalentAmount,
+            maxAvailableAmount = walletBalance.ofCryptoCurrency(CURRENCY_ETH_CODE),
+            transferFeeAmount = transferFee?.ofCryptoCurrency(CURRENCY_ETH_CODE),
             selectedCurrency = currency,
             selectedCurrencyIconRes = mediaProvider.getFlagResource(currency.currencyCode),
-            equivalentAmount = equivalentCurrencyAmount,
-            maxAvailableAmount = CustomCurrencyAmount(
-                walletBalance,
-                CURRENCY_ETH_CODE
-            ),
-            transferFeeAmount = transferFee?.let {
-                CustomCurrencyAmount(
-                    it,
-                    CURRENCY_ETH_CODE
-                )
-            }
+            isTransferAllowed = isTransferAllowed(
+                walletBalance = walletBalance,
+                ethAmount = if (fiatToEthDirection) equivalentAmount.number else enteredAmount.number,
+                transferFee = transferFee
+            )
         )
+    }
+
+    private fun isTransferAllowed(
+        walletBalance: BigDecimal,
+        ethAmount: BigDecimal,
+        transferFee: BigDecimal?
+    ): Boolean {
+        transferFee ?: return false
+        return (walletBalance - ethAmount - transferFee) >= 0.0.toBigDecimal()
     }
 
     fun onSwapCurrencyClick() {

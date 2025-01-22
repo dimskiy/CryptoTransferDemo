@@ -66,7 +66,7 @@ fun TransferScreenDefault() {
     DeblockDemoTheme {
         TransferScreenContent(
             transferCalcModel = TransferCalcModel(
-                selectedAmount = CustomCurrencyAmount(
+                enteredAmount = CustomCurrencyAmount(
                     1998.toBigDecimal(),
                     Currency.getInstance("USD")
                 ),
@@ -75,6 +75,7 @@ fun TransferScreenDefault() {
                 equivalentAmount = CustomCurrencyAmount(1.2.toBigDecimal(), CURRENCY_ETH_CODE),
                 maxAvailableAmount = CustomCurrencyAmount(3450.toBigDecimal(), CURRENCY_ETH_CODE),
                 transferFeeAmount = CustomCurrencyAmount(0.0013.toBigDecimal(), CURRENCY_ETH_CODE),
+                isTransferAllowed = true
             ),
             onSelectedAmountChange = {},
             onSwapCurrencyClick = {},
@@ -129,7 +130,7 @@ private fun TransferScreenContent(
             }
 
             Button(
-                enabled = transferCalcModel?.transferFeeAmount != null,
+                enabled = transferCalcModel?.isTransferAllowed == true,
                 onClick = onTransferClick,
                 shape = RectangleShape,
                 modifier = Modifier
@@ -139,15 +140,15 @@ private fun TransferScreenContent(
                     .fillMaxWidth()
                     .align(Alignment.BottomCenter)
             ) {
-                val label = if (transferCalcModel?.selectedAmount?.isCurrencyEth() == true) {
+                val label = if (transferCalcModel?.enteredAmount?.isCurrencyEth() == true) {
                     stringResource(
                         R.string.label_send_amount,
-                        transferCalcModel.selectedAmount.getFormatted()
+                        transferCalcModel.enteredAmount.getFormatted()
                     )
                 } else {
                     stringResource(
                         R.string.label_send_amount_of_eth,
-                        transferCalcModel?.selectedAmount?.getFormatted().orEmpty()
+                        transferCalcModel?.enteredAmount?.getFormatted().orEmpty()
                     )
                 }
 
@@ -220,7 +221,7 @@ private fun Calculator(
                     .padding(start = 35.dp, top = 25.dp, bottom = 25.dp)
                     .weight(0.6f)
             ) {
-                AmountEnterWidget(
+                AmountEnterField(
                     transferCalcModel = transferCalcModel,
                     onSelectedAmountChange = onSelectedAmountChange,
                     onAmountEnterConfirmClick = onAmountEnterConfirmClick
@@ -245,14 +246,14 @@ private fun Calculator(
 }
 
 @Composable
-private fun AmountEnterWidget(
+private fun AmountEnterField(
     transferCalcModel: TransferCalcModel,
     onSelectedAmountChange: (BigDecimal?) -> Unit,
     onAmountEnterConfirmClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     var amountEntered by remember { mutableStateOf("") }
-    amountEntered = transferCalcModel.selectedAmount.number
+    amountEntered = transferCalcModel.enteredAmount.number
         .takeIf { it > 0.toBigDecimal() }
         ?.toString()
         .orEmpty()
@@ -269,7 +270,11 @@ private fun AmountEnterWidget(
         cursorBrush = SolidColor(Color.Transparent),
         keyboardOptions = KeyboardOptions.Default.copy(
             keyboardType = KeyboardType.Decimal,
-            imeAction = ImeAction.Send,
+            imeAction = if (transferCalcModel.isTransferAllowed) {
+                ImeAction.Send
+            } else {
+                ImeAction.None
+            },
         ),
         keyboardActions = KeyboardActions(
             onSend = { onAmountEnterConfirmClick() }
@@ -279,7 +284,7 @@ private fun AmountEnterWidget(
                 horizontalArrangement = Arrangement.Start
             ) {
                 Text(
-                    text = transferCalcModel.selectedAmount.currencySymbol,
+                    text = transferCalcModel.enteredAmount.currencySymbol,
                     style = MaterialTheme.typography.titleLarge,
                     modifier = Modifier.padding(end = 5.dp)
                 )
