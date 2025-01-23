@@ -1,20 +1,37 @@
 package `in`.windrunner.deblockdemo.domain.repository
 
+import android.content.Context
+import dagger.hilt.android.qualifiers.ApplicationContext
 import `in`.windrunner.deblockdemo.CustomCurrencyAmount
+import `in`.windrunner.deblockdemo.R
+import `in`.windrunner.deblockdemo.ofEtherium
+import `in`.windrunner.deblockdemo.platform.api.EtherscanApi
+import `in`.windrunner.deblockdemo.platform.api.GeckoApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import java.math.BigDecimal
 import java.util.Currency
 import javax.inject.Inject
 
-class CalculatorRepositoryImpl @Inject constructor() : CalculatorRepository {
+class CalculatorRepositoryImpl @Inject constructor(
+    private val conversionApi: GeckoApi,
+    private val gasPriceApi: EtherscanApi,
+    @ApplicationContext private val context: Context,
+) : CalculatorRepository {
+
     override suspend fun getEthGasPrice(): Result<CustomCurrencyAmount> {
-        return Result.success(
-            CustomCurrencyAmount(
-                0.123.toBigDecimal().setScale(8),
-                CustomCurrencyAmount.CURRENCY_ETH_CODE
-            )
-        )
+        val requestResult = kotlin.runCatching {
+            gasPriceApi.getEthereumGasPrice()
+        }
+
+        return if (requestResult.isSuccess) {
+            requestResult.getOrNull()?.result?.gasPrice
+                ?.ofEtherium()
+                ?.let { Result.success(it) }
+                ?: Result.failure(IllegalStateException(context.getString(R.string.no_gas_price_provided)))
+        } else {
+            Result.failure(IllegalStateException(requestResult.exceptionOrNull()))
+        }
     }
 
     override suspend fun getEthConversionRate(fiatCurrency: String): Result<BigDecimal> {

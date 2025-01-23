@@ -24,6 +24,14 @@ fun String.isDecimalCompatible(): Boolean = matches(Regex("^\\d*\\.?\\d*\$"))
 
 fun String.swapCommaWithDot() = replace(',', '.')
 
+fun <NEW, OLD> Result<OLD>.mapResult(mapper: (OLD) -> NEW): Result<NEW> =
+    getOrNull()?.let { value ->
+        Result.success(mapper(value))
+    } ?: run {
+        val error = exceptionOrNull() ?: UnknownError()
+        Result.failure(error)
+    }
+
 @Composable
 fun Modifier.forceKeyboardShow(): Modifier {
     val keyboardController = LocalSoftwareKeyboardController.current

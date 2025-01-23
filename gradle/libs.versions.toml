@@ -14,6 +14,7 @@ hilt = "2.52"
 hiltNavigation = "1.2.0"
 retrofit = "2.9.0"
 retrofitLogger = "5.0.0-alpha.11"
+okhttp = "4.12.0"
 
 [libraries]
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
@@ -29,6 +30,8 @@ timber = { module = "com.jakewharton.timber:timber", version.ref = "timber" }
 retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "retrofit" }
 retrofit-jsonConverter = { module = "com.squareup.retrofit2:converter-gson", version.ref = "retrofit" }
 retrofit-logger = { module = "com.squareup.okhttp3:logging-interceptor", version.ref = "retrofitLogger" }
+okhttp = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp" }
+okhttp-logger = { module = "com.squareup.okhttp3:logging-interceptor", version.ref = "okhttp" }
 
 #Compose
 androidx-compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }

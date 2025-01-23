@@ -71,6 +71,7 @@ dependencies {
     implementation(libs.retrofit)
     implementation(libs.retrofit.jsonConverter)
     implementation(libs.retrofit.logger)
+    implementation(libs.okhttp)
 
     debugImplementation(libs.androidx.compose.tool.preview)
     debugImplementation(libs.androidx.compose.tool)

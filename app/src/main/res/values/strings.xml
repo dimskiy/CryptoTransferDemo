@@ -5,4 +5,5 @@
     <string name="label_send_amount_of_eth">Send %s of ETH</string>
     <string name="label_send_amount">Send %s</string>
     <string name="label_max_amount">Max %s</string>
+    <string name="no_gas_price_provided">No gas price provided</string>
 </resources>
