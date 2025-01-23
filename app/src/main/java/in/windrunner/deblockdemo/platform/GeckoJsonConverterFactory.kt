@@ -45,8 +45,7 @@ class GeckoJsonConverterFactory : Converter.Factory() {
             json: JsonElement?,
             typeOfT: Type?,
             context: JsonDeserializationContext?
-        ): GeckoApi.ConversionRate? =
-            if (json?.isJsonObject == true) {
+        ): GeckoApi.ConversionRate? = if (json?.isJsonObject == true) {
             val conversionRateString = json.asJsonObject
                 .entrySet()
                 .firstOrNull()

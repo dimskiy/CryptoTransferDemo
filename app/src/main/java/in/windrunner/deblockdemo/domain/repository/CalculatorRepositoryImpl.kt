@@ -8,8 +8,11 @@ import `in`.windrunner.deblockdemo.mapResult
 import `in`.windrunner.deblockdemo.ofEtherium
 import `in`.windrunner.deblockdemo.platform.api.EtherscanApi
 import `in`.windrunner.deblockdemo.platform.api.GeckoApi
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.withContext
 import java.math.BigDecimal
 import java.util.Currency
 import javax.inject.Inject
@@ -20,24 +23,30 @@ class CalculatorRepositoryImpl @Inject constructor(
     @ApplicationContext private val context: Context,
 ) : CalculatorRepository {
 
-    override suspend fun getEthGasPrice(): Result<CustomCurrencyAmount> {
-        val requestResult = gasPriceApi.getEthereumGasPrice()
+    override suspend fun getEthGasPrice(): Result<CustomCurrencyAmount> =
+        withContext(Dispatchers.IO) {
+            val requestResult = kotlin.runCatching {
+                gasPriceApi.getEthereumGasPrice()
+            }
 
-        return if (requestResult.isSuccess) {
-            requestResult.getOrNull()?.result?.gasPrice
-                ?.ofEtherium()
-                ?.let { Result.success(it) }
-                ?: Result.failure(IllegalStateException(context.getString(R.string.no_gas_price_provided)))
-        } else {
-            Result.failure(IllegalStateException(requestResult.exceptionOrNull()))
+            if (requestResult.isSuccess) {
+                requestResult.getOrNull()?.result?.gasPrice
+                    ?.ofEtherium()
+                    ?.let { Result.success(it) }
+                    ?: Result.failure(IllegalStateException(context.getString(R.string.no_gas_price_provided)))
+            } else {
+                Result.failure(IllegalStateException(requestResult.exceptionOrNull()))
+            }
         }
-    }
 
-    override suspend fun getEthConversionRate(fiatCurrency: String): Result<BigDecimal> {
-        val requestResult = conversionApi.getConversionRate(currencyCode = fiatCurrency)
+    override suspend fun getEthConversionRate(fiatCurrency: String): Result<BigDecimal> =
+        withContext(Dispatchers.IO) {
+            val requestResult = runCatching {
+                conversionApi.getConversionRate(currencyCode = fiatCurrency)
+            }
 
-        return requestResult.mapResult { it.conversionRate.rate }
-    }
+            requestResult.mapResult { it.conversionRate.rate }
+        }
 
     // Supported currencies list is static for demo purposes
     override suspend fun getCurrenciesSupported(): List<Currency> = listOf(
@@ -47,5 +56,8 @@ class CalculatorRepositoryImpl @Inject constructor(
     )
 
     // Balance is static for demo purposes
-    override fun observeWalletEthBalance(): Flow<BigDecimal> = flowOf(3000.toBigDecimal())
+    override fun observeWalletEthBalance(): Flow<BigDecimal> = flow {
+        emit(3000.toBigDecimal())
+        suspendCancellableCoroutine<Unit> {}
+    }
 }

@@ -11,6 +11,9 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.cancellable
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.onCompletion
+import kotlinx.coroutines.flow.onEach
+import timber.log.Timber
 import kotlin.time.Duration
 
 fun Duration.asTimerFlow(): Flow<Unit> = flow {
@@ -24,13 +27,19 @@ fun String.isDecimalCompatible(): Boolean = matches(Regex("^\\d*\\.?\\d*\$"))
 
 fun String.swapCommaWithDot() = replace(',', '.')
 
-fun <NEW, OLD> Result<OLD>.mapResult(mapper: (OLD) -> NEW?): Result<NEW> =
+fun <NEW, OLD> Result<OLD>.mapResult(mapper: (OLD) -> NEW): Result<NEW> =
     getOrNull()?.let { value ->
-        mapper(value)?.let { Result.success(it) }
+        Result.success(mapper(value))
     } ?: run {
         val error = exceptionOrNull() ?: UnknownError()
         Result.failure(error)
     }
+
+fun <T> Flow<T>.debug(tag: String): Flow<T> = onEach {
+    Timber.tag("FLOW-DEBUG").d("($tag) emitted: ${it.toString()}")
+}.onCompletion {
+    Timber.tag("FLOW-DEBUG").d("($tag) COMPLETED")
+}
 
 @Composable
 fun Modifier.forceKeyboardShow(): Modifier {

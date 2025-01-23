@@ -2,13 +2,11 @@ package `in`.windrunner.deblockdemo.domain.usecase
 
 import `in`.windrunner.deblockdemo.asTimerFlow
 import `in`.windrunner.deblockdemo.domain.repository.CalculatorRepository
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import timber.log.Timber
 import java.math.BigDecimal
@@ -32,10 +30,6 @@ class ObserveTransferFeeCase @Inject constructor(
                     emptyFlow()
                 }
             }
-            .map { (gas, _, _) ->
-                val fee = 21000.toBigDecimal() * gas / 100000000.toBigDecimal()
-                fee
-            }
-            .flowOn(Dispatchers.IO)
+            .map { (gas, _, _) -> 21000.toBigDecimal() * gas / 100000000.toBigDecimal() }
     }
 }

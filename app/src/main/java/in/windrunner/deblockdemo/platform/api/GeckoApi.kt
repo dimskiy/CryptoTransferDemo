@@ -11,7 +11,7 @@ interface GeckoApi {
     suspend fun getConversionRate(
         @Query("ids") ids: String = "ethereum",
         @Query("vs_currencies") currencyCode: String
-    ): Result<PriceResponse>
+    ): PriceResponse
 
     data class PriceResponse(
         @SerializedName("ethereum") val conversionRate: ConversionRate
