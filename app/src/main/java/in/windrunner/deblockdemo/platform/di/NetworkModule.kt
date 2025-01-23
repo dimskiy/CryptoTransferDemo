@@ -5,6 +5,7 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import `in`.windrunner.deblockdemo.platform.EtherscanJsonConverterFactory
+import `in`.windrunner.deblockdemo.platform.GeckoJsonConverterFactory
 import `in`.windrunner.deblockdemo.platform.api.EtherscanApi
 import `in`.windrunner.deblockdemo.platform.api.EtherscanApi.Companion.ETHERSCAN_BASE_URL
 import `in`.windrunner.deblockdemo.platform.api.GeckoApi
@@ -12,7 +13,6 @@ import `in`.windrunner.deblockdemo.platform.api.GeckoApi.Companion.GECKO_BASE_UR
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
 import timber.log.Timber
 import java.util.concurrent.TimeUnit
 import javax.inject.Singleton
@@ -47,7 +47,7 @@ class NetworkModule {
     fun provideGeckoService(okHttpClient: OkHttpClient): GeckoApi =
         Retrofit.Builder()
             .baseUrl(GECKO_BASE_URL)
-            .addConverterFactory(GsonConverterFactory.create())
+            .addConverterFactory(GeckoJsonConverterFactory())
             .client(okHttpClient)
             .build()
             .create(GeckoApi::class.java)

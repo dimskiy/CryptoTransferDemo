@@ -4,6 +4,7 @@ import android.content.Context
 import dagger.hilt.android.qualifiers.ApplicationContext
 import `in`.windrunner.deblockdemo.CustomCurrencyAmount
 import `in`.windrunner.deblockdemo.R
+import `in`.windrunner.deblockdemo.mapResult
 import `in`.windrunner.deblockdemo.ofEtherium
 import `in`.windrunner.deblockdemo.platform.api.EtherscanApi
 import `in`.windrunner.deblockdemo.platform.api.GeckoApi
@@ -20,9 +21,7 @@ class CalculatorRepositoryImpl @Inject constructor(
 ) : CalculatorRepository {
 
     override suspend fun getEthGasPrice(): Result<CustomCurrencyAmount> {
-        val requestResult = kotlin.runCatching {
-            gasPriceApi.getEthereumGasPrice()
-        }
+        val requestResult = gasPriceApi.getEthereumGasPrice()
 
         return if (requestResult.isSuccess) {
             requestResult.getOrNull()?.result?.gasPrice
@@ -35,13 +34,18 @@ class CalculatorRepositoryImpl @Inject constructor(
     }
 
     override suspend fun getEthConversionRate(fiatCurrency: String): Result<BigDecimal> {
-        return Result.success(0.23.toBigDecimal()) //TODO implement
+        val requestResult = conversionApi.getConversionRate(currencyCode = fiatCurrency)
+
+        return requestResult.mapResult { it.conversionRate.rate }
     }
 
+    // Supported currencies list is static for demo purposes
     override suspend fun getCurrenciesSupported(): List<Currency> = listOf(
         Currency.getInstance("USD"),
-        Currency.getInstance("ETH"),
+        Currency.getInstance("GBP"),
+        Currency.getInstance("EUR"),
     )
 
+    // Balance is static for demo purposes
     override fun observeWalletEthBalance(): Flow<BigDecimal> = flowOf(3000.toBigDecimal())
 }

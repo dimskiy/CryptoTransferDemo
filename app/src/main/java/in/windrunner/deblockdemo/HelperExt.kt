@@ -24,9 +24,9 @@ fun String.isDecimalCompatible(): Boolean = matches(Regex("^\\d*\\.?\\d*\$"))
 
 fun String.swapCommaWithDot() = replace(',', '.')
 
-fun <NEW, OLD> Result<OLD>.mapResult(mapper: (OLD) -> NEW): Result<NEW> =
+fun <NEW, OLD> Result<OLD>.mapResult(mapper: (OLD) -> NEW?): Result<NEW> =
     getOrNull()?.let { value ->
-        Result.success(mapper(value))
+        mapper(value)?.let { Result.success(it) }
     } ?: run {
         val error = exceptionOrNull() ?: UnknownError()
         Result.failure(error)

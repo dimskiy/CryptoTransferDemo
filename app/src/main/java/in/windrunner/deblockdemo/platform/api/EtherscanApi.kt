@@ -11,7 +11,7 @@ interface EtherscanApi {
     suspend fun getEthereumGasPrice(
         @Query("module") module: String = "gastracker",
         @Query("action") action: String = "gasoracle"
-    ): GasResult
+    ): Result<GasResult>
 
 
     data class GasResult(

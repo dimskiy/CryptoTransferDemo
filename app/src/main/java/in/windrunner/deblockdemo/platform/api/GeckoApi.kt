@@ -1,7 +1,9 @@
 package `in`.windrunner.deblockdemo.platform.api
 
+import com.google.gson.annotations.SerializedName
 import retrofit2.http.GET
 import retrofit2.http.Query
+import java.math.BigDecimal
 
 interface GeckoApi {
 
@@ -12,7 +14,11 @@ interface GeckoApi {
     ): Result<PriceResponse>
 
     data class PriceResponse(
-        val ethRates: Map<String, Double>
+        @SerializedName("ethereum") val conversionRate: ConversionRate
+    )
+
+    data class ConversionRate(
+        val rate: BigDecimal
     )
 
     companion object {
