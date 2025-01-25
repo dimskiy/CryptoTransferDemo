@@ -17,11 +17,11 @@ class CurrencySelectionState @Inject constructor(
 
     private val _currencySelected = MutableStateFlow<Currency?>(null)
 
-    val currencySelected: Flow<Currency?> = combine(
+    val currencySelected: Flow<Currency> = combine(
         _currencySelected,
         flow {
-            val firstCurrency = calculatorRepository.getCurrenciesSupported().firstOrNull()
-            Timber.d("Currency selected init: ${firstCurrency?.currencyCode}")
+            val firstCurrency = calculatorRepository.getCurrenciesSupported().first()
+            Timber.d("Currency selected init: ${firstCurrency.currencyCode}")
             emit(firstCurrency)
         }
     ) { value, initialValue -> value ?: initialValue }

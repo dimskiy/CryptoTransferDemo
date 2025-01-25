@@ -6,4 +6,7 @@
     <string name="label_send_amount">Send %s</string>
     <string name="label_max_amount">Max %s</string>
     <string name="no_gas_price_provided">No gas price provided</string>
+    <string name="error_exchange_rate_unavailable">Exchange rate unavailable</string>
+    <string name="error_gas_price_unavailable">Gas price unavailable</string>
+    <string name="error_something_went_wrong">Something went wrong</string>
 </resources>

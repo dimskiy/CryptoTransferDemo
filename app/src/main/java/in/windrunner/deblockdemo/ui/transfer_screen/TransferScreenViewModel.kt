@@ -7,19 +7,19 @@ import `in`.windrunner.deblockdemo.domain.CurrencySelectionState
 import `in`.windrunner.deblockdemo.domain.usecase.GetConversionRateCase
 import `in`.windrunner.deblockdemo.domain.usecase.ObserveEthWalletBalance
 import `in`.windrunner.deblockdemo.domain.usecase.ObserveTransferFeeCase
+import `in`.windrunner.deblockdemo.flatMapLatestResult
+import `in`.windrunner.deblockdemo.mapLatestResult
 import `in`.windrunner.deblockdemo.ofEtherium
 import `in`.windrunner.deblockdemo.ofFiatCurrency
 import `in`.windrunner.deblockdemo.ui.MediaProvider
+import `in`.windrunner.deblockdemo.wrapError
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import java.math.BigDecimal
@@ -39,27 +39,28 @@ class TransferScreenViewModel @Inject constructor(
     private val amountSelected = MutableStateFlow(0.toBigDecimal())
     private val isFiatToEthDirection = MutableStateFlow(true)
 
-    val transferCalcModel: StateFlow<TransferCalcModel?> = combine(
+    val transferCalcModel: StateFlow<Result<TransferCalcModel>?> = combine(
         amountSelected,
         currencySelectionState.currencySelected,
         isFiatToEthDirection,
-        observeEthWalletBalance()
+        observeEthWalletBalance(),
     ) { amount, currency, fiatToEthDirection, walletBalance ->
-        currency ?: return@combine null
-
-        TransferCalcModelDraft(
-            enteredAmount = amount,
-            selectedCurrency = currency,
-            maxAvailableAmount = walletBalance,
-            isFiatToEthTransfer = fiatToEthDirection
-        )
-    }.flatMapLatest { transferModelDraft ->
-        transferModelDraft?.selectedCurrency ?: return@flatMapLatest emptyFlow()
-
-        getRateWithFee(transferModelDraft.selectedCurrency)
-            .map { (rate, fee) ->
-                mapTransferCalcModel(transferModelDraft, rate, fee)
+        getConversionRateCase(currency.currencyCode).mapLatestResult {
+            TransferCalcModelDraft(
+                enteredAmount = amount,
+                selectedCurrency = currency,
+                maxAvailableAmount = walletBalance,
+                isFiatToEthTransfer = fiatToEthDirection,
+                conversionRate = it
+            )
+        }
+    }.flatMapLatest { transferDraftResult ->
+        transferDraftResult.getOrNull()?.let { draft ->
+            observeTransferFeeCase().flatMapLatestResult { fee ->
+                mapTransferCalcModel(draft, fee)
             }
+        }
+            ?: flowOf(transferDraftResult.wrapError())
     }
         .stateIn(
             scope = viewModelScope,
@@ -69,22 +70,21 @@ class TransferScreenViewModel @Inject constructor(
 
     private fun mapTransferCalcModel(
         draft: TransferCalcModelDraft,
-        convertRate: BigDecimal,
-        transferFee: BigDecimal?
+        transferFee: BigDecimal
     ): TransferCalcModel {
         val enteredAmount = if (draft.isFiatToEthTransfer) {
             draft.enteredAmount.ofFiatCurrency(draft.selectedCurrency)
         } else draft.enteredAmount.ofEtherium()
 
         val equivalentAmount = if (draft.isFiatToEthTransfer) {
-            (draft.enteredAmount * convertRate).ofEtherium()
-        } else (draft.enteredAmount / convertRate).ofFiatCurrency(draft.selectedCurrency)
+            (draft.enteredAmount * draft.conversionRate).ofEtherium()
+        } else (draft.enteredAmount / draft.conversionRate).ofFiatCurrency(draft.selectedCurrency)
 
         return TransferCalcModel(
             enteredAmount = enteredAmount,
             equivalentAmount = equivalentAmount,
             maxAvailableAmount = draft.maxAvailableAmount.ofEtherium(),
-            transferFeeAmount = transferFee?.ofEtherium(),
+            transferFeeAmount = transferFee.ofEtherium(),
             selectedCurrency = draft.selectedCurrency,
             selectedCurrencyIconRes = mediaProvider.getFlagResource(draft.selectedCurrency.currencyCode),
             isTransferAllowed = isTransferAllowed(
@@ -94,14 +94,6 @@ class TransferScreenViewModel @Inject constructor(
             )
         )
     }
-
-    private fun getRateWithFee(convertCurrency: Currency): Flow<Pair<BigDecimal, BigDecimal>> =
-        observeTransferFeeCase().mapNotNull { fee ->
-            val rate = getConversionRateCase(convertCurrency.currencyCode)
-            if (rate != null && fee != null) {
-                rate to fee
-            } else null
-        }
 
     private fun isTransferAllowed(
         walletBalance: BigDecimal,
@@ -113,10 +105,11 @@ class TransferScreenViewModel @Inject constructor(
     }
 
     fun onSwapCurrencyClick() {
-        val newAmount = transferCalcModel.value?.equivalentAmount
+        val newAmount = transferCalcModel.value?.getOrNull()
         isFiatToEthDirection.update { prevState -> !prevState }
+
         newAmount?.let { newValue ->
-            amountSelected.update { newValue.number.stripTrailingZeros() }
+            amountSelected.update { newValue.enteredAmount.number.stripTrailingZeros() }
         }
     }
 
@@ -132,6 +125,7 @@ class TransferScreenViewModel @Inject constructor(
         val enteredAmount: BigDecimal,
         val selectedCurrency: Currency,
         val maxAvailableAmount: BigDecimal,
-        val isFiatToEthTransfer: Boolean
+        val isFiatToEthTransfer: Boolean,
+        val conversionRate: BigDecimal
     )
 }

@@ -85,6 +85,7 @@ fun TransferScreenDefault() {
             onSwapCurrencyClick = {},
             onTransferClick = {},
             onAmountEnterConfirmClick = {},
+            isContentEnabled = true,
             modifier = Modifier
                 .padding(horizontal = 10.dp, vertical = 10.dp)
         )
@@ -92,17 +93,29 @@ fun TransferScreenDefault() {
 }
 
 @Composable
-fun TransferScreen(modifier: Modifier, viewModel: TransferScreenViewModel = hiltViewModel()) {
+fun TransferScreen(
+    onErrorDisplay: (Throwable) -> Unit,
+    viewModel: TransferScreenViewModel = hiltViewModel(),
+    modifier: Modifier,
+) {
     val transferModel = viewModel.transferCalcModel.collectAsState()
+    var transferModelCache by remember { mutableStateOf<Result<TransferCalcModel>?>(null) }
 
-    TransferScreenContent(
-        transferCalcModel = transferModel.value,
-        onSelectedAmountChange = viewModel::onAmountChange,
-        onSwapCurrencyClick = viewModel::onSwapCurrencyClick,
-        onTransferClick = viewModel::onTransferClick,
-        onAmountEnterConfirmClick = viewModel::onTransferClick,
-        modifier = modifier
-    )
+    val isContentEnabled = transferModel.value?.isSuccess == true
+    transferModel.value?.takeIf(Result<*>::isSuccess)?.let { transferModelCache = it }
+
+    transferModelCache?.getOrNull()?.let {
+        TransferScreenContent(
+            transferCalcModel = it,
+            onSelectedAmountChange = viewModel::onAmountChange,
+            onSwapCurrencyClick = viewModel::onSwapCurrencyClick,
+            onTransferClick = viewModel::onTransferClick,
+            onAmountEnterConfirmClick = viewModel::onTransferClick,
+            isContentEnabled = isContentEnabled,
+            modifier = modifier
+        )
+    }
+    transferModel.value?.exceptionOrNull()?.let(onErrorDisplay::invoke)
 }
 
 @Composable
@@ -112,6 +125,7 @@ private fun TransferScreenContent(
     onSwapCurrencyClick: () -> Unit,
     onTransferClick: () -> Unit,
     onAmountEnterConfirmClick: () -> Unit,
+    isContentEnabled: Boolean,
     modifier: Modifier = Modifier
 ) {
     Surface(
@@ -134,7 +148,7 @@ private fun TransferScreenContent(
             }
 
             Button(
-                enabled = transferCalcModel?.isTransferAllowed == true,
+                enabled = transferCalcModel?.isTransferAllowed == true && isContentEnabled,
                 onClick = onTransferClick,
                 shape = RectangleShape,
                 modifier = Modifier
@@ -377,7 +391,10 @@ private fun CurrencyPanel(
 }
 
 @Composable
-private fun SwapCurrenciesPairButton(onClick: () -> Unit, modifier: Modifier = Modifier) {
+private fun SwapCurrenciesPairButton(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
     FilledIconButton(
         shape = CircleShape,
         colors = IconButtonDefaults.filledIconButtonColors(
