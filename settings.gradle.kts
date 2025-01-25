@@ -19,5 +19,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "DeblockDemo"
+rootProject.name = "CryptoTransferDemo"
 include(":app")

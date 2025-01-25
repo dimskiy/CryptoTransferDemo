@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">deblock-demo</string>
+    <string name="app_name">Crypto-transfer demo</string>
     <string name="label_send_etherium">Send Etherium</string>
     <string name="label_est_network_fees">Est. Network fees: %s</string>
     <string name="label_send_amount_of_eth">Send %s of ETH</string>
@@ -9,4 +9,8 @@
     <string name="error_exchange_rate_unavailable">Exchange rate unavailable</string>
     <string name="error_gas_price_unavailable">Gas price unavailable</string>
     <string name="error_something_went_wrong">Something went wrong</string>
+    <string name="displayed_currency">Displayed currency</string>
+    <string name="info_currency_eth_sending">The currency is for information only.\nYou\'re still sending ETH.</string>
+    <string name="error_received_empty_result">Received empty result...</string>
+    <string name="error_cannot_get_conversion_rates">Cannot get conversion rates</string>
 </resources>

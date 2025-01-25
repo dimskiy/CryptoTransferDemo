@@ -7,11 +7,11 @@ plugins {
 }
 
 android {
-    namespace = "in.windrunner.deblockdemo"
+    namespace = "in.windrunner.cryptotransferdemo"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "in.windrunner.deblockdemo"
+        applicationId = "in.windrunner.cryptotransferdemo"
         minSdk = 29
         targetSdk = 35
         versionCode = 1
