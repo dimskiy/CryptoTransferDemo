@@ -59,6 +59,7 @@ import `in`.windrunner.deblockdemo.CustomCurrencyAmount.Companion.CURRENCY_ETH_C
 import `in`.windrunner.deblockdemo.R
 import `in`.windrunner.deblockdemo.forceKeyboardShow
 import `in`.windrunner.deblockdemo.isDecimalCompatible
+import `in`.windrunner.deblockdemo.ofEtherium
 import `in`.windrunner.deblockdemo.swapCommaWithDot
 import `in`.windrunner.deblockdemo.ui.theme.DeblockDemoTheme
 import java.math.BigDecimal
@@ -70,7 +71,7 @@ fun TransferScreenDefault() {
     DeblockDemoTheme {
         TransferScreenContent(
             transferCalcModel = TransferCalcModel(
-                enteredAmount = CustomCurrencyAmount(
+                baseAmount = CustomCurrencyAmount(
                     1998.toBigDecimal(),
                     Currency.getInstance("USD")
                 ),
@@ -78,9 +79,8 @@ fun TransferScreenDefault() {
                 selectedCurrencyIconRes = R.drawable.ic_us,
                 equivalentAmount = CustomCurrencyAmount(1.2.toBigDecimal(), CURRENCY_ETH_CODE),
                 maxAvailableAmount = CustomCurrencyAmount(3450.toBigDecimal(), CURRENCY_ETH_CODE),
-                transferFeeAmount = CustomCurrencyAmount(0.0013.toBigDecimal(), CURRENCY_ETH_CODE),
-                isTransferAllowed = true
             ),
+            transferFeeModel = 0.0.toBigDecimal().ofEtherium(),
             onSelectedAmountChange = {},
             onSwapCurrencyClick = {},
             onTransferClick = {},
@@ -101,12 +101,16 @@ fun TransferScreen(
     val transferModel = viewModel.transferCalcModel.collectAsState()
     var transferModelCache by remember { mutableStateOf<Result<TransferCalcModel>?>(null) }
 
+    val transferFeeModel = viewModel.transferFee.collectAsState()
+    transferFeeModel.value?.exceptionOrNull()?.let(onErrorDisplay::invoke)
+
     val isContentEnabled = transferModel.value?.isSuccess == true
     transferModel.value?.takeIf(Result<*>::isSuccess)?.let { transferModelCache = it }
 
     transferModelCache?.getOrNull()?.let {
         TransferScreenContent(
             transferCalcModel = it,
+            transferFeeModel = transferFeeModel.value?.getOrNull(),
             onSelectedAmountChange = viewModel::onAmountChange,
             onSwapCurrencyClick = viewModel::onSwapCurrencyClick,
             onTransferClick = viewModel::onTransferClick,
@@ -121,6 +125,7 @@ fun TransferScreen(
 @Composable
 private fun TransferScreenContent(
     transferCalcModel: TransferCalcModel?,
+    transferFeeModel: CustomCurrencyAmount?,
     onSelectedAmountChange: (BigDecimal?) -> Unit,
     onSwapCurrencyClick: () -> Unit,
     onTransferClick: () -> Unit,
@@ -138,6 +143,7 @@ private fun TransferScreenContent(
             if (transferCalcModel != null) {
                 TransferWidget(
                     transferCalcModel = transferCalcModel,
+                    transferFeeModel = transferFeeModel,
                     onSelectedAmountChange = onSelectedAmountChange,
                     onSwapCurrencyClick = onSwapCurrencyClick,
                     onAmountEnterConfirmClick = onAmountEnterConfirmClick,
@@ -148,7 +154,7 @@ private fun TransferScreenContent(
             }
 
             Button(
-                enabled = transferCalcModel?.isTransferAllowed == true && isContentEnabled,
+                enabled = isContentEnabled,
                 onClick = onTransferClick,
                 shape = RectangleShape,
                 modifier = Modifier
@@ -158,15 +164,15 @@ private fun TransferScreenContent(
                     .fillMaxWidth()
                     .align(Alignment.BottomCenter)
             ) {
-                val label = if (transferCalcModel?.enteredAmount?.isCurrencyEth() == true) {
+                val label = if (transferCalcModel?.baseAmount?.isCurrencyEth() == true) {
                     stringResource(
                         R.string.label_send_amount,
-                        transferCalcModel.enteredAmount.getFormatted()
+                        transferCalcModel.baseAmount.getFormatted()
                     )
                 } else {
                     stringResource(
                         R.string.label_send_amount_of_eth,
-                        transferCalcModel?.enteredAmount?.getFormatted().orEmpty()
+                        transferCalcModel?.baseAmount?.getFormatted().orEmpty()
                     )
                 }
 
@@ -179,6 +185,7 @@ private fun TransferScreenContent(
 @Composable
 private fun TransferWidget(
     transferCalcModel: TransferCalcModel,
+    transferFeeModel: CustomCurrencyAmount?,
     onSelectedAmountChange: (BigDecimal?) -> Unit,
     onSwapCurrencyClick: () -> Unit,
     onAmountEnterConfirmClick: () -> Unit,
@@ -213,7 +220,7 @@ private fun TransferWidget(
         }
 
         TransferFeeLabel(
-            transferCalcModel.transferFeeAmount?.getFormatted().orEmpty(),
+            transferFeeModel?.getFormatted().orEmpty(),
             modifier = Modifier.padding(start = 22.dp, top = 15.dp, end = 22.dp)
         )
     }
@@ -273,7 +280,7 @@ private fun AmountEnterField(
     modifier: Modifier = Modifier
 ) {
     var amountEntered by remember { mutableStateOf("") }
-    amountEntered = transferCalcModel.enteredAmount.number.toString()
+    amountEntered = transferCalcModel.baseAmount.number.toString()
 
     BasicTextField(
         value = TextFieldValue(amountEntered, TextRange(amountEntered.length)),
@@ -287,11 +294,7 @@ private fun AmountEnterField(
         cursorBrush = SolidColor(Color.Transparent),
         keyboardOptions = KeyboardOptions.Default.copy(
             keyboardType = KeyboardType.Decimal,
-            imeAction = if (transferCalcModel.isTransferAllowed) {
-                ImeAction.Send
-            } else {
-                ImeAction.None
-            },
+            imeAction = ImeAction.Send,
         ),
         keyboardActions = KeyboardActions(
             onSend = { onAmountEnterConfirmClick() }
@@ -301,7 +304,7 @@ private fun AmountEnterField(
                 horizontalArrangement = Arrangement.Start
             ) {
                 Text(
-                    text = transferCalcModel.enteredAmount.currencySymbol,
+                    text = transferCalcModel.baseAmount.currencySymbol,
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.W500,
                     modifier = Modifier.padding(end = 5.dp)
