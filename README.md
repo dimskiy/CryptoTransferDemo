@@ -2,11 +2,13 @@
 Android app mocking funds transfer screen in a cryptocurrency wallet app. 
 [Deblock](https://deblock.com/en-FR) app used as a UI/UX reference.
 
+![scr1](https://github.com/user-attachments/assets/e0eb07bb-fb38-44bc-8f9e-5a18fb685e29)
+
 ## App consists of two screens:
 * Money transfer screen with multi-currency support and real-time transfer fees updates (OK, not exactly realtime, but still once a 6 sec).
 * Currency selection bottom sheet. Used to pick the base "fiat" currency with exchange rates being updated on the first launch. Values received are kept in cache to not spam the "gentle" API.
 
-## Stack:
+## Stack
 * Kotlin 100%
 * Jetpack Compose
 * Kotlin Coroutines/Flow
